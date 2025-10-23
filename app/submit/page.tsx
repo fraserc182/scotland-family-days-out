@@ -23,10 +23,6 @@ export default function SubmitActivity() {
     opening_hours: '',
     website: '',
     facilities: '',
-    submittedBy: '',
-    submitterEmail: '',
-    submitterPhone: '',
-    submitterMessage: '',
   });
 
   const weatherOptions = ['sunny', 'rainy'];
@@ -299,59 +295,7 @@ export default function SubmitActivity() {
               </div>
             </div>
 
-            {/* Contact Information */}
-            <div>
-              <h2 className="text-lg font-semibold text-slate-900 mb-4">Your Information</h2>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Name *</label>
-                  <input
-                    type="text"
-                    name="submittedBy"
-                    value={formData.submittedBy}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                  />
-                </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Email *</label>
-                  <input
-                    type="email"
-                    name="submitterEmail"
-                    value={formData.submitterEmail}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Phone (optional)</label>
-                  <input
-                    type="tel"
-                    name="submitterPhone"
-                    value={formData.submitterPhone}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Message (optional)</label>
-                  <textarea
-                    name="submitterMessage"
-                    value={formData.submitterMessage}
-                    onChange={handleChange}
-                    rows={2}
-                    className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                    placeholder="Any additional information..."
-                  />
-                </div>
-              </div>
-            </div>
 
             <button
               type="submit"

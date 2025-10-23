@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     // Validate required fields
-    const requiredFields = ['name', 'location', 'description', 'price', 'cost', 'submittedBy', 'submitterEmail'];
+    const requiredFields = ['name', 'location', 'description', 'price', 'cost'];
     for (const field of requiredFields) {
       if (!body[field]) {
         return NextResponse.json(
@@ -15,15 +15,6 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(body.submitterEmail)) {
-      return NextResponse.json(
-        { error: 'Invalid email format' },
-        { status: 400 }
-      );
     }
 
     // Create a readable submission ID: activity-name_timestamp
