@@ -860,36 +860,6 @@
     "website": "https://www.welcometofife.com/"
   },
   {
-    "id": "butterfly-insect-world",
-    "name": "Butterfly & Insect World",
-    "location": "Lasswade, near Edinburgh (at Dobbies Garden Centre)",
-    "price": "Prices vary",
-    "cost": "paid",
-    "weather": [
-      "sunny",
-      "rainy"
-    ],
-    "dog_friendly": false,
-    "accessible": false,
-    "tags": [
-      "💶",
-      "☀",
-      "☔"
-    ],
-    "lat": 55.8833,
-    "lng": -3.15,
-    "description": "Indoor tropical attraction featuring free-flying butterflies in heated glasshouses. Meet exotic insects, reptiles, and spiders. Educational displays about insect life cycles. Popular with families and school groups. Located at Dobbies Garden Centre. Combination tickets available with garden centre facilities.",
-    "opening_hours": "Daily 10am-5pm (seasonal variations)",
-    "facilities": [
-      "Tropical houses",
-      "Educational displays",
-      "Adjacent garden centre",
-      "Café nearby",
-      "Parking"
-    ],
-    "website": null
-  },
-  {
     "id": "cafe-ceramico",
     "name": "Café Ceramico",
     "location": "East Kilbride",
