@@ -22,7 +22,7 @@ interface Activity {
   lng?: number;
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     // Load static activities from JSON
     const jsonPath = path.join(process.cwd(), 'public', 'activities.json');
