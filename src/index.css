@@ -1,0 +1,177 @@
+@import "leaflet/dist/leaflet.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root {
+    @apply h-full;
+  }
+
+  body {
+    @apply bg-gradient-to-br from-blue-50 via-slate-50 to-cyan-50;
+  }
+
+  code {
+    @apply font-mono;
+  }
+
+  input:focus {
+    @apply outline-none border-cyan-500 ring-2 ring-cyan-200;
+  }
+}
+
+@layer components {
+  .badge {
+    @apply inline-block px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700;
+  }
+
+  .badge-emerald {
+    @apply bg-emerald-50 text-emerald-700;
+  }
+
+  .badge-purple {
+    @apply bg-purple-50 text-purple-700;
+  }
+
+  .header-gradient {
+    @apply bg-gradient-scotland text-white;
+  }
+
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+  }
+
+  .filter-btn {
+    @apply px-3 py-2 text-sm rounded-full border transition-colors font-medium;
+  }
+
+  .filter-btn-active {
+    @apply bg-blue-600 text-white border-blue-600;
+  }
+
+  .filter-btn-inactive {
+    @apply bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100;
+  }
+}
+
+#map {
+  @apply relative z-10;
+  height: 70vh;
+  width: 100%;
+}
+
+/* Ensure Leaflet popups don't interfere */
+.leaflet-popup {
+  z-index: 100 !important;
+}
+
+.leaflet-control {
+  z-index: 100 !important;
+}
+
+/* Map popup styling */
+.map-popup {
+  font-family: inherit;
+  min-width: 240px;
+}
+
+.map-popup-header {
+  background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
+  color: white;
+  padding: 12px 14px;
+  margin: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.map-popup-title {
+  font-size: 15px;
+  font-weight: 700;
+  display: block;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.map-popup-body {
+  padding: 12px 14px;
+  font-size: 13px;
+}
+
+.map-popup-location {
+  padding: 6px 0;
+  color: #475569;
+  font-weight: 500;
+  margin: 0;
+}
+
+.map-popup-price {
+  padding: 6px 0;
+  color: #0369a1;
+  font-weight: 600;
+  font-size: 12px;
+  margin: 0;
+}
+
+.map-popup-cta {
+  padding: 8px 0;
+  margin: 8px 0 0 0;
+  padding-top: 8px;
+  border-top: 1px solid #e2e8f0;
+  color: #0369a1;
+  font-weight: 600;
+  font-size: 12px;
+  animation: pulse-arrow 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-arrow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* Style Leaflet popup content wrapper */
+.leaflet-popup-content-wrapper {
+  padding: 0 !important;
+  border-radius: 8px !important;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Ensure close button is always visible and clickable */
+.leaflet-popup-close-button {
+  z-index: 1000 !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 50%;
+  width: 28px !important;
+  height: 28px !important;
+  top: 8px !important;
+  right: 8px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.leaflet-popup-close-button:hover {
+  background: rgba(255, 255, 255, 1) !important;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  @apply w-2 h-2;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-slate-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-300 rounded hover:bg-slate-400;
+}
