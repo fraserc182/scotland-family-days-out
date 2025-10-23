@@ -188,7 +188,7 @@ export default function ScotlandDaysOut() {
           <div className="flex items-center justify-between gap-4">
             <div>
               <h1 className="text-3xl md:text-4xl font-extrabold">🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland — Family Days Out</h1>
-              <p className="text-blue-100 mt-2 text-sm md:text-base">Discover amazing activities for the whole family</p>
+              <p className="text-blue-100 mt-2 text-sm md:text-base">Discover activities for the whole family</p>
             </div>
             <div className="text-right flex-shrink-0">
               <div className="text-3xl font-bold text-white">{filtered.length}</div>
