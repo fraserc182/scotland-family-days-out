@@ -6,17 +6,21 @@ import { auth } from '@/src/lib/firebase';
 import { signOut } from 'firebase/auth';
 import { db } from '@/src/lib/firebase';
 import { collection, query, where, getDocs, updateDoc, doc } from 'firebase/firestore';
-import { ActivitySubmission } from '@/src/types/submission';
+import { ActivitySubmission, ActivityFlag } from '@/src/types/submission';
 
 export default function AdminDashboard() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [submissions, setSubmissions] = useState<ActivitySubmission[]>([]);
+  const [flags, setFlags] = useState<ActivityFlag[]>([]);
   const [filter, setFilter] = useState<'pending' | 'approved' | 'rejected'>('pending');
   const [selectedSubmission, setSelectedSubmission] = useState<ActivitySubmission | null>(null);
+  const [selectedFlag, setSelectedFlag] = useState<ActivityFlag | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
+  const [adminNotes, setAdminNotes] = useState('');
   const [processing, setProcessing] = useState(false);
+  const [activeTab, setActiveTab] = useState<'submissions' | 'flags'>('submissions');
 
   // Check authentication
   useEffect(() => {
@@ -47,7 +51,7 @@ export default function AdminDashboard() {
           ...doc.data(),
           submissionId: doc.id,
         })) as ActivitySubmission[];
-        
+
         // Sort by date, newest first
         data.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
         setSubmissions(data);
@@ -58,6 +62,33 @@ export default function AdminDashboard() {
 
     fetchSubmissions();
   }, [user, filter]);
+
+  // Fetch flags
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchFlags = async () => {
+      try {
+        const q = query(
+          collection(db, 'flags'),
+          where('status', '==', 'pending')
+        );
+        const querySnapshot = await getDocs(q);
+        const data = querySnapshot.docs.map(doc => ({
+          ...doc.data(),
+          flagId: doc.id,
+        })) as ActivityFlag[];
+
+        // Sort by date, newest first
+        data.sort((a, b) => new Date(b.flaggedAt).getTime() - new Date(a.flaggedAt).getTime());
+        setFlags(data);
+      } catch (error) {
+        console.error('Error fetching flags:', error);
+      }
+    };
+
+    fetchFlags();
+  }, [user]);
 
   const handleApprove = async (submission: ActivitySubmission) => {
     setProcessing(true);
@@ -107,6 +138,55 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleResolveFlag = async (flag: ActivityFlag) => {
+    if (!adminNotes.trim()) {
+      alert('Please provide admin notes');
+      return;
+    }
+
+    setProcessing(true);
+    try {
+      const docRef = doc(db, 'flags', flag.flagId);
+      await updateDoc(docRef, {
+        status: 'resolved',
+        adminNotes: adminNotes,
+        resolvedAt: new Date().toISOString(),
+      });
+
+      setFlags(flags.filter(f => f.flagId !== flag.flagId));
+      setSelectedFlag(null);
+      setAdminNotes('');
+      alert('Flag resolved!');
+    } catch (error) {
+      console.error('Error resolving flag:', error);
+      alert('Failed to resolve flag');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleDismissFlag = async (flag: ActivityFlag) => {
+    setProcessing(true);
+    try {
+      const docRef = doc(db, 'flags', flag.flagId);
+      await updateDoc(docRef, {
+        status: 'dismissed',
+        adminNotes: adminNotes || 'Dismissed',
+        resolvedAt: new Date().toISOString(),
+      });
+
+      setFlags(flags.filter(f => f.flagId !== flag.flagId));
+      setSelectedFlag(null);
+      setAdminNotes('');
+      alert('Flag dismissed!');
+    } catch (error) {
+      console.error('Error dismissing flag:', error);
+      alert('Failed to dismiss flag');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -139,12 +219,38 @@ export default function AdminDashboard() {
       </header>
 
       <div className="p-4 md:p-8">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Submissions List */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-slate-900">Submissions</h2>
+        <div className="max-w-6xl mx-auto">
+          {/* Tabs */}
+          <div className="flex gap-4 mb-6">
+            <button
+              onClick={() => setActiveTab('submissions')}
+              className={`px-6 py-3 rounded-lg font-semibold transition ${
+                activeTab === 'submissions'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-slate-700 hover:bg-slate-100'
+              }`}
+            >
+              📝 Submissions
+            </button>
+            <button
+              onClick={() => setActiveTab('flags')}
+              className={`px-6 py-3 rounded-lg font-semibold transition ${
+                activeTab === 'flags'
+                  ? 'bg-red-600 text-white'
+                  : 'bg-white text-slate-700 hover:bg-slate-100'
+              }`}
+            >
+              🚩 Flags ({flags.length})
+            </button>
+          </div>
+
+          {activeTab === 'submissions' && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Submissions List */}
+              <div className="lg:col-span-2">
+                <div className="bg-white rounded-2xl shadow-lg p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-bold text-slate-900">Submissions</h2>
                 <div className="flex gap-2">
                   {(['pending', 'approved', 'rejected'] as const).map(status => (
                     <button
@@ -282,6 +388,118 @@ export default function AdminDashboard() {
               </div>
             )}
           </div>
+            </div>
+          )}
+
+          {activeTab === 'flags' && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Flags List */}
+              <div className="lg:col-span-2">
+                <div className="bg-white rounded-2xl shadow-lg p-6">
+                  <h2 className="text-xl font-bold text-slate-900 mb-6">Flagged Activities</h2>
+
+                  {flags.length === 0 ? (
+                    <div className="text-center py-12 text-slate-500">
+                      No pending flags
+                    </div>
+                  ) : (
+                    <div className="space-y-3 max-h-[600px] overflow-y-auto">
+                      {flags.map(flag => (
+                        <button
+                          key={flag.flagId}
+                          onClick={() => setSelectedFlag(flag)}
+                          className={`w-full text-left p-4 rounded-lg border-2 transition ${
+                            selectedFlag?.flagId === flag.flagId
+                              ? 'border-red-500 bg-red-50'
+                              : 'border-slate-200 hover:border-slate-300'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-slate-900">{flag.activityName}</h3>
+                              <p className="text-sm text-slate-600 capitalize">{flag.reason.replace('_', ' ')}</p>
+                              <p className="text-xs text-slate-500 mt-1">
+                                {new Date(flag.flaggedAt).toLocaleDateString()}
+                              </p>
+                            </div>
+                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">
+                              {flag.status}
+                            </span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Flag Details Panel */}
+              <div className="lg:col-span-1">
+                {selectedFlag ? (
+                  <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-4">
+                    <h3 className="text-lg font-bold text-slate-900 mb-4">{selectedFlag.activityName}</h3>
+
+                    <div className="space-y-4 mb-6 text-sm">
+                      <div>
+                        <p className="text-slate-600">Activity ID</p>
+                        <p className="font-semibold text-slate-900 break-all">{selectedFlag.activityId}</p>
+                      </div>
+
+                      <div>
+                        <p className="text-slate-600">Reason</p>
+                        <p className="font-semibold text-slate-900 capitalize">{selectedFlag.reason.replace('_', ' ')}</p>
+                      </div>
+
+                      <div>
+                        <p className="text-slate-600">Flagged At</p>
+                        <p className="font-semibold text-slate-900">{new Date(selectedFlag.flaggedAt).toLocaleString()}</p>
+                      </div>
+
+                      {selectedFlag.details && (
+                        <div>
+                          <p className="text-slate-600">Details</p>
+                          <p className="text-slate-700">{selectedFlag.details}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Admin Notes</label>
+                        <textarea
+                          value={adminNotes}
+                          onChange={(e) => setAdminNotes(e.target.value)}
+                          placeholder="Add notes about this flag..."
+                          className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-red-500"
+                          rows={3}
+                        />
+                      </div>
+
+                      <button
+                        onClick={() => handleResolveFlag(selectedFlag)}
+                        disabled={processing}
+                        className="w-full px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition disabled:opacity-50"
+                      >
+                        ✓ Resolve
+                      </button>
+
+                      <button
+                        onClick={() => handleDismissFlag(selectedFlag)}
+                        disabled={processing}
+                        className="w-full px-4 py-2 bg-slate-600 text-white font-semibold rounded-lg hover:bg-slate-700 transition disabled:opacity-50"
+                      >
+                        ✗ Dismiss
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-2xl shadow-lg p-6 text-center text-slate-500">
+                    Select a flag to view details
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

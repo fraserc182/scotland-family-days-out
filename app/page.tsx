@@ -50,6 +50,10 @@ export default function ScotlandDaysOut() {
   const [showFavouritesOnly, setShowFavouritesOnly] = useState(false);
   const [selected, setSelected] = useState<Activity | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
+  const [showFlagModal, setShowFlagModal] = useState(false);
+  const [flagReason, setFlagReason] = useState('');
+  const [flagDetails, setFlagDetails] = useState('');
+  const [flagSubmitting, setFlagSubmitting] = useState(false);
 
   // Load activities data from API (includes Firebase approved activities)
   useEffect(() => {
@@ -226,6 +230,42 @@ export default function ScotlandDaysOut() {
     setFavourites((prev: string[]) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
+
+  const handleFlagSubmit = async () => {
+    if (!selected || !flagReason.trim()) {
+      alert('Please select a reason for flagging');
+      return;
+    }
+
+    setFlagSubmitting(true);
+    try {
+      const response = await fetch('/api/activities/flag', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          activityId: selected.id,
+          activityName: selected.name,
+          reason: flagReason,
+          details: flagDetails,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to flag activity' }));
+        throw new Error(errorData.error || 'Failed to flag activity');
+      }
+
+      alert('Thank you for reporting this activity. We will review it shortly.');
+      setShowFlagModal(false);
+      setFlagReason('');
+      setFlagDetails('');
+    } catch (err) {
+      console.error('Flag submission error:', err);
+      alert(err instanceof Error ? err.message : 'Failed to flag activity');
+    } finally {
+      setFlagSubmitting(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -481,7 +521,75 @@ export default function ScotlandDaysOut() {
                     </a>
                   </div>
                 )}
+
+                <div className="pt-4 border-t border-slate-200">
+                  <button
+                    onClick={() => setShowFlagModal(true)}
+                    className="text-red-600 text-sm font-semibold hover:text-red-700 transition"
+                  >
+                    🚩 Report this activity
+                  </button>
+                </div>
               </div>
+
+              {showFlagModal && (
+                <div className="border-t border-slate-200 p-6 bg-red-50">
+                  <h3 className="font-bold text-slate-900 mb-4">Report Activity</h3>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        Reason for reporting *
+                      </label>
+                      <select
+                        value={flagReason}
+                        onChange={(e) => setFlagReason(e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      >
+                        <option value="">Select a reason...</option>
+                        <option value="inappropriate">Inappropriate content</option>
+                        <option value="incorrect_info">Incorrect information</option>
+                        <option value="duplicate">Duplicate activity</option>
+                        <option value="closed">Activity is closed</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        Additional details (optional)
+                      </label>
+                      <textarea
+                        value={flagDetails}
+                        onChange={(e) => setFlagDetails(e.target.value)}
+                        placeholder="Please provide any additional information..."
+                        rows={3}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+                      />
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          setShowFlagModal(false);
+                          setFlagReason('');
+                          setFlagDetails('');
+                        }}
+                        className="flex-1 px-4 py-2 bg-slate-200 text-slate-700 font-semibold rounded-lg hover:bg-slate-300 transition"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleFlagSubmit}
+                        disabled={flagSubmitting || !flagReason.trim()}
+                        className="flex-1 px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition disabled:opacity-50"
+                      >
+                        {flagSubmitting ? 'Submitting...' : 'Submit Report'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

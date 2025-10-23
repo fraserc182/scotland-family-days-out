@@ -28,3 +28,15 @@ export interface ActivitySubmission extends Activity {
   submitterMessage?: string;
 }
 
+export interface ActivityFlag {
+  flagId: string;
+  activityId: string;
+  activityName: string;
+  reason: 'inappropriate' | 'incorrect_info' | 'duplicate' | 'closed' | 'other';
+  details?: string;
+  flaggedAt: string;
+  status: 'pending' | 'resolved' | 'dismissed';
+  resolvedAt?: string;
+  adminNotes?: string;
+}
+
